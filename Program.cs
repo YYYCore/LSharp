@@ -36,6 +36,7 @@ namespace YTurnAround
         public static Spell TryndW, ShacoE, CassR;
         public static Champ Tryndamere, Shaco, Cassiopeia;
         public static Vector3 pos;
+
         public int direct = 0;
 
 
@@ -45,6 +46,11 @@ namespace YTurnAround
         }
 
 
+        static double getDistance(Vector3 vec1, Vector3 vec2)
+        {
+            double dist = (Math.Pow(((Math.Pow(vec2.X - vec1.X, 2))+ Math.Pow(vec2.Y - vec1.Y, 2) + Math.Pow(vec2.Z - vec1.Z, 2)), 0.5));
+            return dist;
+        }
 
 
         static void Game_OnGameLoad(EventArgs args)
@@ -103,25 +109,60 @@ namespace YTurnAround
                & (spell.Target == player))
             {
                 int direct = 0;
+
+
+
+
                 if (sender.BaseSkinName == "Tryndamere")
                 {
                     int delay = Tryndamere.delay;
                     direct = Tryndamere.direction;
-                } if (sender.BaseSkinName == "Shaco")
+
+                    pos = new Vector3(player.Position.X + (direct * sender.Position.X) / 5
+                     , player.Position.Y + (direct * sender.Position.Y) / 5
+                     , 0);
+                } 
+                
+                
+                
+                if (sender.BaseSkinName == "Shaco")
                 {
+
+                    foreach (var missile in ObjectManager.Get<Obj_SpellMissile>())
+                    {
+
+                        if (missile.SData.Name == "ShivPoison" && missile.Target.Name == player.Name)
+                        {
+                            Game.PrintChat(missile.SData.Name + missile.SpellCaster + missile.Target.Name + missile.Position);
+                            while (missile.Position != player.Position)
+                            {
+                                if ((getDistance(missile.Position, player.Position)) < 80){
+                                    pos = new Vector3((player.Position.X + missile.Position.X)/2, (player.Position.Y + missile.Position.Y)/2, 0);
+                                }
+                            }
+
+                        }
+                    }
+
                     int delay = Shaco.delay;
                     direct = Shaco.direction;
-                } if (sender.BaseSkinName == "Cassiopeia")
+                } 
+                
+                
+                
+                
+                
+                if (sender.BaseSkinName == "Cassiopeia")
                 {
                     int delay = Cassiopeia.delay;
                     direct = Cassiopeia.direction;
+
+                   pos = new Vector3(player.Position.X + (direct * sender.Position.X) / 4
+                 , player.Position.Y + (direct * sender.Position.Y) / 4
+                 , 0);
+
+
                 }
-
-
-
-                pos = new Vector3(player.Position.X + (direct * sender.Position.X) / 4
-                                 , player.Position.Y + (direct * sender.Position.Y) / 4
-                                 , 0);
 
                 player.IssueOrder(GameObjectOrder.MoveTo, pos);
 
