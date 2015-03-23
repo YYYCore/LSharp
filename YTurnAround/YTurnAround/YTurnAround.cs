@@ -10,15 +10,16 @@ using SharpDX;
 
 namespace YTurnAround
 {
-    
-    public class Champ{
-        public string name {get; set;}
-        public string skill {get; set;}
-        public string dspname {get; set;}
-        public int range {get; set;}
-        public int delay {get; set;}
-        public int direction {get; set;}
-        public int speed {get; set; }
+
+    public class Champ
+    {
+        public string name { get; set; }
+        public string skill { get; set; }
+        public string dspname { get; set; }
+        public int range { get; set; }
+        public int delay { get; set; }
+        public int direction { get; set; }
+        public int speed { get; set; }
 
     }
 
@@ -46,7 +47,7 @@ namespace YTurnAround
 
         static double getDistance(Vector3 vec1, Vector3 vec2)
         {
-            double dist = (Math.Pow(((Math.Pow(vec2.X - vec1.X, 2))+ Math.Pow(vec2.Y - vec1.Y, 2) + Math.Pow(vec2.Z - vec1.Z, 2)), 0.5));
+            double dist = (Math.Pow(((Math.Pow(vec2.X - vec1.X, 2)) + Math.Pow(vec2.Y - vec1.Y, 2) + Math.Pow(vec2.Z - vec1.Z, 2)), 0.5));
             return dist;
         }
 
@@ -103,8 +104,8 @@ namespace YTurnAround
         private static void Obj_AI_Base_OnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs spell)
         {
 
-            if ((spell.SData.Name == Tryndamere.skill 
-               || spell.SData.Name == Shaco.skill 
+            if ((spell.SData.Name == Tryndamere.skill
+               || spell.SData.Name == Shaco.skill
                || spell.SData.Name == Cassiopeia.skill)
                & (spell.Target == player))
             {
@@ -133,10 +134,10 @@ namespace YTurnAround
                     {
                         player.IssueOrder(GameObjectOrder.MoveTo, pos);
                     });
-                } 
-                
-                
-                
+                }
+
+
+
                 if (sender.BaseSkinName == "Shaco")
                 {
 
@@ -148,8 +149,9 @@ namespace YTurnAround
                             Game.PrintChat(missile.SData.Name + missile.SpellCaster + missile.Target.Name + missile.Position);
                             while (missile.Position != player.Position)
                             {
-                                if ((getDistance(missile.Position, player.Position)) < 80){
-                                    pos = new Vector3((player.Position.X + missile.Position.X)/2, (player.Position.Y + missile.Position.Y)/2, 0);
+                                if ((getDistance(missile.Position, player.Position)) < 80)
+                                {
+                                    pos = new Vector3((player.Position.X + missile.Position.X) / 2, (player.Position.Y + missile.Position.Y) / 2, 0);
                                     break;
                                 }
                             }
@@ -184,7 +186,7 @@ namespace YTurnAround
                     });
 
                 }
-            }        
+            }
         }
     }
 }
