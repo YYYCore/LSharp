@@ -8,12 +8,8 @@ using LeagueSharp.Common;
 using SharpDX;
 
 
-
-
-
 namespace YTurnAround
 {
-    
     
     public class Champ{
         public string name {get; set;}
@@ -22,6 +18,7 @@ namespace YTurnAround
         public int range {get; set;}
         public int delay {get; set;}
         public int direction {get; set;}
+        public int speed {get; set; }
 
     }
 
@@ -38,6 +35,7 @@ namespace YTurnAround
         public static Vector3 pos;
 
         public int direct = 0;
+
 
 
         static void Main(string[] args)
@@ -62,7 +60,6 @@ namespace YTurnAround
             config.AddItem(new MenuItem(Shaco.dspname, Shaco.dspname)).SetValue(true);
             config.AddItem(new MenuItem(Cassiopeia.dspname, Cassiopeia.dspname)).SetValue(true);
 
-
             Tryndamere = new Champ
             {
                 name = "Tryndamere",
@@ -71,6 +68,7 @@ namespace YTurnAround
                 range = 850,
                 delay = 10,
                 direction = 1,
+                speed = 500,
             };
 
             Shaco = new Champ
@@ -81,6 +79,7 @@ namespace YTurnAround
                 range = 625,
                 delay = 100,
                 direction = 1,
+                speed = 1500,
             };
 
             Cassiopeia = new Champ
@@ -91,6 +90,7 @@ namespace YTurnAround
                 range = 750,
                 delay = 50,
                 direction = 0,
+                speed = 0
             };
 
 
@@ -112,7 +112,6 @@ namespace YTurnAround
 
 
 
-
                 if (sender.BaseSkinName == "Tryndamere")
                 {
                     int delay = Tryndamere.delay;
@@ -121,6 +120,19 @@ namespace YTurnAround
                     pos = new Vector3(player.Position.X + (direct * sender.Position.X) / 5
                      , player.Position.Y + (direct * sender.Position.Y) / 5
                      , 0);
+
+                    player.IssueOrder(GameObjectOrder.MoveTo, pos);
+
+                    direct = -direct;
+                    pos = new Vector3(player.Position.X + (direct * sender.Position.X) / 3
+                    , player.Position.Y + (direct * sender.Position.Y) / 3
+                    , 0);
+
+
+                    Utility.DelayAction.Add(150, () =>
+                    {
+                        player.IssueOrder(GameObjectOrder.MoveTo, pos);
+                    });
                 } 
                 
                 
@@ -138,41 +150,41 @@ namespace YTurnAround
                             {
                                 if ((getDistance(missile.Position, player.Position)) < 80){
                                     pos = new Vector3((player.Position.X + missile.Position.X)/2, (player.Position.Y + missile.Position.Y)/2, 0);
+                                    break;
                                 }
                             }
 
                         }
                     }
-
-                    int delay = Shaco.delay;
                     direct = Shaco.direction;
-                } 
-                
-                
-                
-                
-                
+                }
+
+
+
                 if (sender.BaseSkinName == "Cassiopeia")
                 {
                     int delay = Cassiopeia.delay;
                     direct = Cassiopeia.direction;
 
-                   pos = new Vector3(player.Position.X + (direct * sender.Position.X) / 4
-                 , player.Position.Y + (direct * sender.Position.Y) / 4
-                 , 0);
+                    pos = new Vector3(player.Position.X + (direct * sender.Position.X) / 5
+                  , player.Position.Y + (direct * sender.Position.Y) / 5
+                  , 0);
 
+                    player.IssueOrder(GameObjectOrder.MoveTo, pos);
+
+                    direct = -direct;
+                    pos = new Vector3(player.Position.X + (direct * sender.Position.X) / 3
+                    , player.Position.Y + (direct * sender.Position.Y) / 3
+                    , 0);
+
+
+                    Utility.DelayAction.Add(150, () =>
+                    {
+                        player.IssueOrder(GameObjectOrder.MoveTo, pos);
+                    });
 
                 }
-
-                player.IssueOrder(GameObjectOrder.MoveTo, pos);
-
-
-
-
-            }
-
-
-            
+            }        
         }
     }
 }
