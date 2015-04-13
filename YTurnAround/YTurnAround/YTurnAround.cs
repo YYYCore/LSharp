@@ -38,6 +38,10 @@ namespace YTurnAround
         public int direct = 0;
 
 
+        public static DateTime timestamp;
+        public static TimeSpan time;
+
+
 
         static void Main(string[] args)
         {
@@ -52,6 +56,14 @@ namespace YTurnAround
         }
 
 
+        static int getArrivalTime(Vector3 startpos, Vector3 endpos, int speed)
+        {
+            double dist = getDistance(startpos, endpos);
+            int time = Convert.ToInt32(dist) / speed;
+            return time;
+        }
+
+
         static void Game_OnGameLoad(EventArgs args)
         {
 
@@ -60,6 +72,7 @@ namespace YTurnAround
             config.AddItem(new MenuItem(Tryndamere.dspname, Tryndamere.dspname)).SetValue(true);
             config.AddItem(new MenuItem(Shaco.dspname, Shaco.dspname)).SetValue(true);
             config.AddItem(new MenuItem(Cassiopeia.dspname, Cassiopeia.dspname)).SetValue(true);
+            config.AddToMainMenu();
 
             Tryndamere = new Champ
             {
@@ -90,7 +103,7 @@ namespace YTurnAround
                 dspname = "Cassio R",
                 range = 750,
                 delay = 50,
-                direction = 0,
+                direction = -1,
                 speed = 0
             };
 
@@ -106,86 +119,81 @@ namespace YTurnAround
 
             if ((spell.SData.Name == Tryndamere.skill
                || spell.SData.Name == Shaco.skill
-               || spell.SData.Name == Cassiopeia.skill)
-               & (spell.Target == player))
+               || spell.SData.Name == Cassiopeia.skill))
             {
+
+
+                timestamp = DateTime.Now;
+
+                double delay = 0;
                 int direct = 0;
 
 
 
                 if (sender.BaseSkinName == "Tryndamere")
                 {
-                    int delay = Tryndamere.delay;
-                    direct = Tryndamere.direction;
+                    if (getDistance(player.Position, sender.Position) <= Tryndamere.range) {
+                        if (!player.IsFacing(sender)) {
 
-                    pos = new Vector3(player.Position.X + (direct * sender.Position.X) / 5
-                     , player.Position.Y + (direct * sender.Position.Y) / 5
-                     , 0);
+                            delay = Tryndamere.delay + getArrivalTime(player.Position, sender.Position, Tryndamere.speed);
+                            direct = Tryndamere.direction;
 
-                    player.IssueOrder(GameObjectOrder.MoveTo, pos);
+                            pos = new Vector3(player.Position.X + (direct * sender.Position.X) / 5
+                             , player.Position.Y + (direct * sender.Position.Y) / 5
+                             , 0);
 
-                    direct = -direct;
-                    pos = new Vector3(player.Position.X + (direct * sender.Position.X) / 3
-                    , player.Position.Y + (direct * sender.Position.Y) / 3
-                    , 0);
-
-
-                    Utility.DelayAction.Add(150, () =>
-                    {
-                        player.IssueOrder(GameObjectOrder.MoveTo, pos);
-                    });
+                        }
+                    
+                    }
                 }
 
 
 
                 if (sender.BaseSkinName == "Shaco")
                 {
-
+                    delay = Shaco.delay + getArrivalTime(player.Position, sender.Position, Shaco.speed);
                     foreach (var missile in ObjectManager.Get<Obj_SpellMissile>())
                     {
-
                         if (missile.SData.Name == "ShivPoison" && missile.Target.Name == player.Name)
                         {
-                            Game.PrintChat(missile.SData.Name + missile.SpellCaster + missile.Target.Name + missile.Position);
-                            while (missile.Position != player.Position)
+                            if (!player.IsFacing(sender))
                             {
-                                if ((getDistance(missile.Position, player.Position)) < 80)
-                                {
-                                    pos = new Vector3((player.Position.X + missile.Position.X) / 2, (player.Position.Y + missile.Position.Y) / 2, 0);
-                                    break;
-                                }
+                                //Game.PrintChat(missile.SData.Name + missile.SpellCaster + missile.Target.Name + missile.Position);
+                                pos = new Vector3((player.Position.X + missile.Position.X) / 2, (player.Position.Y + missile.Position.Y) / 2, 0);                  
                             }
-
                         }
                     }
-                    direct = Shaco.direction;
                 }
 
 
 
                 if (sender.BaseSkinName == "Cassiopeia")
                 {
-                    int delay = Cassiopeia.delay;
+                    delay = Cassiopeia.delay;
                     direct = Cassiopeia.direction;
 
-                    pos = new Vector3(player.Position.X + (direct * sender.Position.X) / 5
-                  , player.Position.Y + (direct * sender.Position.Y) / 5
-                  , 0);
-
-                    player.IssueOrder(GameObjectOrder.MoveTo, pos);
-
-                    direct = -direct;
-                    pos = new Vector3(player.Position.X + (direct * sender.Position.X) / 3
-                    , player.Position.Y + (direct * sender.Position.Y) / 3
-                    , 0);
-
-
-                    Utility.DelayAction.Add(150, () =>
+                    if (player.IsFacing(sender))
                     {
-                        player.IssueOrder(GameObjectOrder.MoveTo, pos);
-                    });
-
+                        pos = new Vector3(player.Position.X + (direct * 10)
+                      , player.Position.Y + (direct * 10)
+                      , 0);
+                    }
                 }
+
+                Vector3 lastpos = player.Position;
+
+                time = timestamp - DateTime.Now;
+                Utility.DelayAction.Add(Convert.ToInt32(delay - time.TotalMilliseconds), () =>
+                {
+                    player.IssueOrder(GameObjectOrder.MoveTo, pos);
+                });
+
+                Utility.DelayAction.Add(100, () =>
+                {
+                    player.IssueOrder(GameObjectOrder.MoveTo, lastpos);
+                });
+
+
             }
         }
     }
