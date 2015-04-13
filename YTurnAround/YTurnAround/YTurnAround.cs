@@ -24,7 +24,7 @@ namespace YTurnAround
     }
 
 
-    class Turn
+    internal class Turn
     {
 
         public static Orbwalking.Orbwalker Orbwalker;
@@ -40,6 +40,10 @@ namespace YTurnAround
 
         public static DateTime timestamp;
         public static TimeSpan time;
+
+
+
+
 
 
 
@@ -67,12 +71,6 @@ namespace YTurnAround
         static void Game_OnGameLoad(EventArgs args)
         {
 
-            player = ObjectManager.Player;
-            config = new Menu("YTurnAround", "YTurnAround", true);
-            config.AddItem(new MenuItem(Tryndamere.dspname, Tryndamere.dspname)).SetValue(true);
-            config.AddItem(new MenuItem(Shaco.dspname, Shaco.dspname)).SetValue(true);
-            config.AddItem(new MenuItem(Cassiopeia.dspname, Cassiopeia.dspname)).SetValue(true);
-            config.AddToMainMenu();
 
             Tryndamere = new Champ
             {
@@ -99,13 +97,30 @@ namespace YTurnAround
             Cassiopeia = new Champ
             {
                 name = "Cassiopeia",
-                skill = "PetrifyingGaze",
+                skill = "CassiopeiaPetrifyingGaze",
                 dspname = "Cassio R",
                 range = 750,
                 delay = 50,
                 direction = -1,
                 speed = 0
             };
+
+
+
+
+
+            Game.PrintChat("test1");
+            //
+            player = ObjectManager.Player;
+            config = new Menu("YTurnAround", "YTurnAround", true);
+            config.AddSubMenu(new Menu("Spells", "Spells"));
+            config.SubMenu("Spells").AddItem(new MenuItem(Tryndamere.dspname, Tryndamere.dspname).SetValue(true));
+            config.SubMenu("Spells").AddItem(new MenuItem(Shaco.dspname, Shaco.dspname).SetValue(true));
+            config.SubMenu("Spells").AddItem(new MenuItem(Cassiopeia.dspname, Cassiopeia.dspname).SetValue(true));
+            config.AddToMainMenu();
+
+
+            
 
 
 
@@ -122,7 +137,7 @@ namespace YTurnAround
                || spell.SData.Name == Cassiopeia.skill))
             {
 
-
+                Game.PrintChat("yolo");
                 timestamp = DateTime.Now;
 
                 double delay = 0;
