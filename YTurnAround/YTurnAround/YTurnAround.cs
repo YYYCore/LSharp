@@ -153,9 +153,9 @@ namespace YTurnAround
                             delay = Tryndamere.delay + getArrivalTime(player.Position, sender.Position, Tryndamere.speed);
                             direct = Tryndamere.direction;
 
-                            pos = new Vector3(player.Position.X + (direct * sender.Position.X) / 5
-                             , player.Position.Y + (direct * sender.Position.Y) / 5
-                             , 0);
+                            pos = new Vector3(player.Position.X + direct * (sender.Position.X - player.Position.X)
+                           , player.Position.Y + direct * (sender.Position.Y - player.Position.Y)
+                           , 0);
 
                         }
                     
@@ -174,7 +174,9 @@ namespace YTurnAround
                             if (!player.IsFacing(sender))
                             {
                                 //Game.PrintChat(missile.SData.Name + missile.SpellCaster + missile.Target.Name + missile.Position);
-                                pos = new Vector3((player.Position.X + missile.Position.X) / 2, (player.Position.Y + missile.Position.Y) / 2, 0);                  
+                                pos = new Vector3((player.Position.X + (missile.Position.X - player.Position.X)) / 2
+                                , (player.Position.Y + (missile.Position.Y - player.Position.Y)) / 2
+                                , 0);                  
                             }
                         }
                     }
@@ -189,25 +191,49 @@ namespace YTurnAround
 
                     if (player.IsFacing(sender))
                     {
-                        pos = new Vector3(player.Position.X + (direct * 10)
-                      , player.Position.Y + (direct * 10)
-                      , 0);
+
+                        pos = new Vector3(player.Position.X + direct * (sender.Position.X - player.Position.X)
+                        , player.Position.Y + direct * (sender.Position.Y - player.Position.Y)
+                        , 0);
+
+
+
+
                     }
                 }
 
-                Vector3 lastpos = player.Position;
+                
 
-                time = timestamp - DateTime.Now;
-                Utility.DelayAction.Add(Convert.ToInt32(delay - time.TotalMilliseconds), () =>
+                time = DateTime.Now - timestamp;
+
+                Game.PrintChat("delay: " + delay.ToString());
+                Game.PrintChat("reaction time: " + ((delay - time.TotalMilliseconds)/2).ToString());
+
+                if (player.IsFacing(sender) && sender.IsFacing(player))
                 {
-                    player.IssueOrder(GameObjectOrder.MoveTo, pos);
-                });
+                    Vector3 lastpos = player.Position;
+                    Orbwalker.SetAttack(false);
+                    Utility.DelayAction.Add(Convert.ToInt32((delay - time.TotalMilliseconds) / 2), () =>
+                    {
+                        
+                        Game.PrintChat("player x: " + player.Position.X.ToString() + "player y: " + player.Position.Y.ToString());
+                        Game.PrintChat("sender x: " + sender.Position.X.ToString() +  "sender y: " + sender.Position.Y.ToString());
+                        Game.PrintChat("goto x: " + pos.X.ToString() + "goto y: " + pos.Y.ToString());
+                        //player.IssueOrder(GameObjectOrder.MoveTo, pos); 
+                        //Orbwalker.SetMovement(false);
+                        
+                        player.IssueOrder(GameObjectOrder.MoveTo, pos);
+                 
+                    });
 
-                Utility.DelayAction.Add(100, () =>
-                {
-                    player.IssueOrder(GameObjectOrder.MoveTo, lastpos);
-                });
+                    Utility.DelayAction.Add(150, () =>
+                    {
+                        player.IssueOrder(GameObjectOrder.MoveTo, lastpos);
+                        //Orbwalker.SetMovement(true);
+                        Orbwalker.SetAttack(true);
 
+                    });
+                }
 
             }
         }
