@@ -11,7 +11,6 @@ using SharpDX;
 
 
 
-
 namespace YRyze
 {
     class Program
@@ -19,10 +18,10 @@ namespace YRyze
 
         public const string ChampionName = "Ryze";
 
-      
 
 
-    
+
+
         public static List<Spell> SpellList = new List<Spell>();
         public static Spell Q;
         public static Spell W;
@@ -40,7 +39,7 @@ namespace YRyze
         public static bool attackNow = true;
         public static double lag = 0;
 
- 
+
 
         public static Menu Config;
         private static Obj_AI_Hero Player;
@@ -116,7 +115,7 @@ namespace YRyze
             Config.SubMenu("Combo").AddItem(new MenuItem("UseWCombo", "Use W In Combo").SetValue(true));
             Config.SubMenu("Combo").AddItem(new MenuItem("UseECombo", "Use E In Combo").SetValue(true));
             Config.SubMenu("Combo").AddItem(new MenuItem("UseRCombo", "Use R In Combo").SetValue(true));
-            Config.SubMenu("Combo").AddItem(new MenuItem("UseAACombo", "AA Usage In Combo").SetValue(new StringList(new[] { "No AA", "Inteligent AA" }, 1)));
+            Config.SubMenu("Combo").AddItem(new MenuItem("UseAACombo", "AA Usage In Combo").SetValue(true));
 
             Config.AddSubMenu(new Menu("Misc", "Misc"));
             Config.SubMenu("Misc").AddItem(new MenuItem("AutoQEGC", "Auto Q On Gapclosers").SetValue(false));
@@ -151,36 +150,24 @@ namespace YRyze
                 Killsteal();
             }
 
-            if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
+
+            switch (Orbwalker.ActiveMode)
             {
-                Combo();
+                case Orbwalking.OrbwalkingMode.Combo:
+                    Combo();
+                    break;
+                case Orbwalking.OrbwalkingMode.Mixed:
+                    Harass();
+                    break;
+                case Orbwalking.OrbwalkingMode.LastHit:
+                    LastHit();
+                    break;
+                case Orbwalking.OrbwalkingMode.LaneClear:
+                    LaneClear();
+                    break;
             }
 
-            if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear)
-            {
-                Orbwalking.Attack = true;
-                JungleClear();
-                LaneClear();
 
-            }
-
-            if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit)
-            {
-                Orbwalking.Attack = true;
-                LastHit();
-            }
-
-            if (Orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed)
-            {
-                Orbwalking.Attack = true;
-                LastHit();
-            }
-
-            if (Config.Item("Ryze.HarassActive").GetValue<KeyBind>().Active || Config.Item("Ryze.HarassActiveT").GetValue<KeyBind>().Active)
-            {
-                Orbwalking.Attack = true;
-                Harass();
-            }
 
         }
 
@@ -237,7 +224,7 @@ namespace YRyze
                     || spell.SData.Name == "VelkozR")
                 {
                     Q.Cast(sender.ServerPosition, true);
-                }               
+                }
             }
 
 
@@ -299,7 +286,69 @@ namespace YRyze
             var useE = Config.Item("UseECombo").GetValue<bool>();
             var useR = Config.Item("UseRCombo").GetValue<bool>();
 
+            var target = TargetSelector.GetTarget(ObjectManager.Player.AttackRange, TargetSelector.DamageType.Magical);
 
+            if (Config.Item("AA").GetValue<bool>())
+            {
+                Orbwalking.Attack = true;
+            }
+            else if ((target.IsValidTarget() && (Player.GetAutoAttackDamage(target) > target.Health))
+                      || (!Q.IsReady() && !W.IsReady() && !E.IsReady())
+                      || ((Player.Mana < QMANA && Player.Mana < WMANA && Player.Mana < EMANA)))
+            {
+                Orbwalking.Attack = true;
+            }
+            else
+            {
+                Orbwalking.Attack = false;
+            }
+
+            if (useR && Player.CountEnemiesInRange(W.Range) > 1
+                && (Q.GetDamage(target) + W.GetDamage(target) + E.GetDamage(target) < target.Health)
+                && GetPassiveStacks() == 4 || Player.HasBuff("RyzePassiveCharged"))
+            {
+                R.Cast(true);
+            }
+
+
+
+            if (useW && W.IsReady() && WMANA < Player.Mana)
+            {
+                W.Cast(target);
+            }
+
+            if (useQ && Q.IsReady() && QMANA < Player.Mana)
+            {
+                Q.CastIfHitchanceEquals(target, HitChance.High);
+            }
+
+
+            if (useE && E.IsReady() && EMANA < Player.Mana)
+            {
+                E.Cast(target);
+            }
+
+            if (useQ && Q.IsReady() && QMANA < Player.Mana)
+            {
+                Q.CastIfHitchanceEquals(target, HitChance.High);
+            }
+
+
+
+
+        }
+
+        public static int GetPassiveStacks()
+        {
+            var stacks = ObjectManager.Player.Buffs.FirstOrDefault(name => name.DisplayName == "RyzePassiveStack");
+            if (stacks.Count > 0)
+            {
+                return stacks.Count;
+            }
+            else
+            {
+                return 0;
+            }
         }
 
 
